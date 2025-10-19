@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter, Manrope } from "next/font/google";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Admin | Slovenščina Korak za Korakom",
@@ -27,7 +28,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className="font-manrope font-medium">{children}</body>
+        <body className="font-manrope font-medium">
+          <Toaster position="bottom-right" richColors />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

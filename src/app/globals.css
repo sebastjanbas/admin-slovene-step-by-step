@@ -76,6 +76,29 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Calendar Colors */
+  --calendar-today-bg: #ebf5ff;
+  --calendar-today-text: rgb(0, 0, 0);
+  --calendar-today-border: #0062ff;
+  --calendar-weekend-bg: rgba(0, 0, 0, 0.02);
+  --calendar-weekend-bg-hover: rgba(0, 0, 0, 0.02);
+  --calendar-hover-border: rgba(0, 0, 0, 0.1);
+  --calendar-cell-gap: 4px;
+  --calendar-cell-radius: 12px;
+  --calendar-header-radius: 6px;
+
+  /* Event Colors */
+  --event-bg: rgba(59, 130, 246, 0.1);
+  --event-text: #ffffff;
+  --event-border: rgba(255, 255, 255, 0.2);
+
+  /* Event Status Colors */
+  --event-bg-available: #3b82f6; /* Blue - Available */
+  --event-bg-booked: #10b981; /* Green - Booked */
+  --event-bg-cancelled: #ef4444; /* Red - Cancelled */
+  --event-bg-completed: #6b7280; /* Gray - Completed */
+  --event-bg-no-show: #f59e0b; /* Orange - No Show */
 }
 
 .dark {
@@ -110,6 +133,29 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Calendar Colors - Dark Mode */
+  --calendar-today-bg: #1a2531;
+  --calendar-today-text: #ffffff;
+  --calendar-today-border: #60a5fa;
+  --calendar-weekend-bg: rgba(255, 255, 255, 0.02);
+  --calendar-weekend-bg-hover: rgba(255, 255, 255, 0.05);
+  --calendar-hover-border: rgba(255, 255, 255, 0.1);
+  --calendar-cell-gap: 4px;
+  --calendar-cell-radius: 12px;
+  --calendar-header-radius: 6px;
+
+  /* Event Colors - Dark Mode */
+  --event-bg: rgba(59, 130, 246, 0.1);
+  --event-text: #ffffff;
+  --event-border: rgba(255, 255, 255, 0.2);
+
+  /* Event Status Colors - Dark Mode */
+  --event-bg-available: #3b82f6; /* Blue - Available */
+  --event-bg-booked: #10b981; /* Green - Booked */
+  --event-bg-cancelled: #ef4444; /* Red - Cancelled */
+  --event-bg-completed: #6b7280; /* Gray - Completed */
+  --event-bg-no-show: #f59e0b; /* Orange - No Show */
 }
 
 @layer base {
@@ -119,4 +165,22 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Calendar Event Styles */
+.fc-event {
+  background-color: var(--event-bg) !important;
+  border-color: var(--event-border) !important;
+  color: var(--event-text) !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  padding: 2px 6px !important;
+  border: 1px solid var(--event-border) !important;
+}
+
+.fc-event:hover {
+  opacity: 0.9 !important;
+  transform: scale(1.02) !important;
+  transition: all 0.2s ease !important;
 }

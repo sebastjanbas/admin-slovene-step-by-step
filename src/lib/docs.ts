@@ -5,6 +5,7 @@ import {
   IconSettings,
   IconUsers,
   IconVideo,
+  IconClock,
 } from "@tabler/icons-react";
 
 export const SIDEBAR_DATA = {
@@ -23,6 +24,11 @@ export const SIDEBAR_DATA = {
       title: "Language Club",
       url: "/language-club",
       icon: IconLanguage,
+    },
+    {
+      title: "Timeblocks",
+      url: "/timeblocks",
+      icon: IconClock,
     },
     {
       title: "Sessions",
