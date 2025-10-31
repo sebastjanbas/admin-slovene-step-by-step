@@ -323,6 +323,30 @@
   background-color: var(--calendar-today-bg);
 }
 
+/* ===== EVENT WIDTH STYLING FOR TIMEGRID ===== */
+/* FullCalendar automatically handles event widths:
+   - When events don't overlap: they take full width (100%)
+   - When events overlap: they split the column width proportionally
+   
+   We ensure our custom styling doesn't interfere with this behavior */
+
+/* Remove any constraints that might prevent full width */
+.fc-timegrid-event-harness {
+  /* FullCalendar manages positioning */
+}
+
+/* Ensure event content fills the available width */
+.fc-timegrid-event .fc-event-main-frame,
+.fc-timegrid-event .fc-event-main {
+  width: 100%;
+}
+
+/* FullCalendar automatically handles event width based on overlap:
+   - Single non-overlapping events: full width (100% of column)
+   - Overlapping events: split proportionally across available width
+   
+   Our custom eventContent should not interfere with this behavior */
+
 /* ===== LIST VIEW STYLING ===== */
 .fc-theme-standard .fc-list-day-cushion {
   background-color: var(--muted);

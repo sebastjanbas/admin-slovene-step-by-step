@@ -5,17 +5,17 @@ import {
   timestamp,
   varchar,
   decimal,
-  pgEnum,
+  // pgEnum,
   jsonb,
 } from "drizzle-orm/pg-core";
 
-const sessionStatus = pgEnum("session_status", [
-  "available",
-  "booked",
-  "cancelled",
-  "completed",
-  "no-show",
-]);
+// export const sessionStatus = pgEnum("session_status", [
+//   "available",
+//   "booked",
+//   "cancelled",
+//   "completed",
+//   "no-show",
+// ]);
 
 export const langClubTable = pgTable("lang_club", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -54,7 +54,7 @@ export const timeblocksTable = pgTable("timeblocks", {
     .references(() => tutorsTable.id),
   startTime: timestamp({ withTimezone: true }).notNull(),
   duration: integer().notNull(),
-  status: sessionStatus().notNull(),
+  status: varchar({ length: 255 }).notNull(),
   sessionType: varchar({ length: 255 }).notNull(),
   location: varchar({ length: 255 }).notNull(),
   studentId: integer().notNull(),
@@ -69,4 +69,12 @@ export const tutorsTable = pgTable("tutors", {
   avatar: varchar({ length: 255 }).notNull(),
   color: varchar({ length: 255 }).notNull(),
   clerkId: varchar({ length: 255 }).notNull().unique(),
+});
+
+export const schedulesTable = pgTable("schedules", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  ownerId: varchar({ length: 255 }).notNull(),
+  schedule: jsonb().notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow(),
 });

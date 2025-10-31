@@ -13,6 +13,7 @@
         "@fullcalendar/daygrid": "^6.1.19",
         "@fullcalendar/interaction": "^6.1.19",
         "@fullcalendar/list": "^6.1.19",
+        "@fullcalendar/multimonth": "^6.1.19",
         "@fullcalendar/react": "^6.1.19",
         "@fullcalendar/timegrid": "^6.1.19",
         "@hookform/resolvers": "^5.2.2",
@@ -187,6 +188,8 @@
     "@fullcalendar/interaction": ["@fullcalendar/interaction@6.1.19", "", { "peerDependencies": { "@fullcalendar/core": "~6.1.19" } }, "sha512-GOciy79xe8JMVp+1evAU3ytdwN/7tv35t5i1vFkifiuWcQMLC/JnLg/RA2s4sYmQwoYhTw/p4GLcP0gO5B3X5w=="],
 
     "@fullcalendar/list": ["@fullcalendar/list@6.1.19", "", { "peerDependencies": { "@fullcalendar/core": "~6.1.19" } }, "sha512-knZHpAVF0LbzZpSJSUmLUUzF0XlU/MRGK+Py2s0/mP93bCtno1k2L3XPs/kzh528hSjehwLm89RgKTSfW1P6cA=="],
+
+    "@fullcalendar/multimonth": ["@fullcalendar/multimonth@6.1.19", "", { "dependencies": { "@fullcalendar/daygrid": "~6.1.19" }, "peerDependencies": { "@fullcalendar/core": "~6.1.19" } }, "sha512-YYP8o/tjNLFRKhelwiq5ja3Jm3WDf3bfOUHf32JvAWwfotCvZjD7tYv66Nj02mQ8OWWJINa2EQGJxFHgIs14aA=="],
 
     "@fullcalendar/react": ["@fullcalendar/react@6.1.19", "", { "peerDependencies": { "@fullcalendar/core": "~6.1.19", "react": "^16.7.0 || ^17 || ^18 || ^19", "react-dom": "^16.7.0 || ^17 || ^18 || ^19" } }, "sha512-FP78vnyylaL/btZeHig8LQgfHgfwxLaIG6sKbNkzkPkKEACv11UyyBoTSkaavPsHtXvAkcTED1l7TOunAyPEnA=="],
 
