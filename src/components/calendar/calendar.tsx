@@ -110,46 +110,12 @@ export default function Calendar({data}: { data: SessionData[] }) {
     };
   });
 
-  // Initialize calendar date and title from URL params
-  useEffect(() => {
-    const calendarApi = calendarRef.current?.getApi();
-    if (!calendarApi) return;
-
-    const monthParam = searchParams.get("month");
-    if (monthParam) {
-      // Try to parse the month name and navigate to that month
-      try {
-        // Create a date object for the first day of the month
-        const monthNames = [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
-        ];
-        const monthIndex = monthNames.findIndex(
-          (m) => m.toLowerCase() === monthParam.toLowerCase()
-        );
-        if (monthIndex !== -1) {
-          const currentDate = new Date();
-          const targetDate = new Date(currentDate.getFullYear(), monthIndex, 1);
-          calendarApi.gotoDate(targetDate);
-        }
-      } catch (e) {
-        console.error("Error parsing month from URL:", e);
-      }
-    }
-
-    const timer = setTimeout(() => {
-      updateCalendarTitle();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [searchParams]);
-
   // Update URL params when view or date changes
   const updateUrlParams = useCallback(
-    (updates: { view?: string; month?: string; date?: string }) => {
+    (updates: { view?: string; date?: string }) => {
       const params = new URLSearchParams(searchParams.toString());
 
-      // Ensure tab is set to calendar if not already
+      // Ensure the tab is set to calendar if not already
       if (!params.get("tab")) {
         params.set("tab", "calendar");
       }
@@ -168,20 +134,9 @@ export default function Calendar({data}: { data: SessionData[] }) {
         params.set("view", urlViewName);
       }
 
-      if (updates.month) {
-        params.set("month", updates.month);
-      } else if (updates.date) {
-        // Extract month name from date
-        const date = new Date(updates.date);
-        const monthName = date.toLocaleDateString("en-US", {month: "long"});
-        if (currentView === "dayGridMonth") {
-          params.set("month", monthName);
-        }
-      }
-
       router.push(`/timeblocks?${params.toString()}`, {scroll: false});
     },
-    [searchParams, router, currentView]
+    [searchParams, router]
   );
 
   const changeView = useCallback(
@@ -218,12 +173,12 @@ export default function Calendar({data}: { data: SessionData[] }) {
         daysToSubtract
       );
 
-      // Set the calendar to week view and navigate to that week
+      // Set the calendar-to-week view and navigate to that week
       if (calendarRef.current) {
         const calendarApi = calendarRef.current.getApi();
         // Navigate to the specific date first
         calendarApi.gotoDate(startOfWeek);
-        // Use the existing changeView function to properly update state
+        // Use the existing changeView function to properly update the state
         changeView("timeGridWeek");
       }
     },
@@ -253,7 +208,7 @@ export default function Calendar({data}: { data: SessionData[] }) {
       }
     };
 
-    // Add event listener to the calendar container
+    // Add an event listener to the calendar container
     const calendarApi = calendarRef.current?.getApi();
     if (calendarApi) {
       const calendarEl = (calendarApi as any).el;
@@ -338,7 +293,7 @@ export default function Calendar({data}: { data: SessionData[] }) {
       </div>
 
       {/* FullCalendar Component */}
-      <div className="h-[65vh] w-full">
+      <div className="h-full w-full">
         <FullCalendar
           ref={calendarRef}
           plugins={[
@@ -350,20 +305,6 @@ export default function Calendar({data}: { data: SessionData[] }) {
           initialView={initialFullCalendarView}
           headerToolbar={false}
           height="100%"
-          datesSet={(arg) => {
-            // Update URL when calendar date changes (navigation, view change, etc.)
-            const calendarApi = calendarRef.current?.getApi();
-            if (calendarApi) {
-              updateCalendarTitle();
-              const view = calendarApi.view;
-              if (view.type === "dayGridMonth") {
-                const monthName = arg.start.toLocaleDateString("en-US", {
-                  month: "long",
-                });
-                updateUrlParams({month: monthName});
-              }
-            }
-          }}
           views={{
             timeGridWeek: {
               type: "timeGrid",

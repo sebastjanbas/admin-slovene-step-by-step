@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {useState} from "react";
+import {Card, CardContent} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,7 +19,7 @@ import {
   IconMapPin,
   IconUser,
 } from "@tabler/icons-react";
-import { TIMEBLOCKS, STUDENTS } from "@/components/calendar/placeholder-data";
+import {TIMEBLOCKS, STUDENTS} from "@/components/calendar/placeholder-data";
 
 export function TimeblockList() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,7 +77,7 @@ export function TimeblockList() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-col h-full">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Time Blocks</h2>
@@ -86,7 +86,7 @@ export function TimeblockList() {
           </p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
-          <IconPlus className="h-4 w-4 mr-2" />
+          <IconPlus className="h-4 w-4 mr-2"/>
           Add Time Block
         </Button>
       </div>
@@ -97,7 +97,8 @@ export function TimeblockList() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <IconSearch
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4"/>
                 <Input
                   placeholder="Search by student name or location..."
                   value={searchTerm}
@@ -109,7 +110,7 @@ export function TimeblockList() {
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="Status"/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -125,7 +126,7 @@ export function TimeblockList() {
                 onValueChange={setSessionTypeFilter}
               >
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Type" />
+                  <SelectValue placeholder="Type"/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
@@ -140,11 +141,11 @@ export function TimeblockList() {
       </Card>
 
       {/* Time Blocks List */}
-      <div className="space-y-3">
+      <div className="space-y-3 overflow-y-auto flex-1 min-h-0">
         {filteredTimeblocks.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <IconClock className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <IconClock className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50"/>
               <h3 className="text-lg font-medium mb-2">No time blocks found</h3>
               <p className="text-muted-foreground">
                 {searchTerm ||
@@ -193,16 +194,16 @@ export function TimeblockList() {
                           </div>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                             <span className="flex items-center gap-1">
-                              <IconClock className="h-4 w-4" />
+                              <IconClock className="h-4 w-4"/>
                               {formatDate(timeblock.startTime)} at{" "}
                               {formatTime(timeblock.startTime)}
                             </span>
                             <span className="flex items-center gap-1">
-                              <IconMapPin className="h-4 w-4" />
+                              <IconMapPin className="h-4 w-4"/>
                               {timeblock.location}
                             </span>
                             <span className="flex items-center gap-1">
-                              <IconUser className="h-4 w-4" />
+                              <IconUser className="h-4 w-4"/>
                               {timeblock.sessionType}
                             </span>
                           </div>

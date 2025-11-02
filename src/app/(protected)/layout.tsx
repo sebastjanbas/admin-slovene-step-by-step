@@ -31,13 +31,16 @@ const ProtectedLayout = async ({children}: { children: React.ReactNode }) => {
       <AppSidebar variant="sidebar"/>
       <SidebarInset>
         <SiteHeader/>
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              {children}
-            </div>
-          </div>
+        <div className={"h-[calc(100vh-var(--header-height))]"}>
+          {children}
         </div>
+        {/*<div className="flex flex-1 flex-col">*/}
+        {/*  <div className="@container/main flex flex-1 flex-col gap-2">*/}
+        {/*    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 bg-green-200">*/}
+        {/*      {children}*/}
+        {/*    </div>*/}
+        {/*  </div>*/}
+        {/*</div>*/}
       </SidebarInset>
     </SidebarProvider>
   );
