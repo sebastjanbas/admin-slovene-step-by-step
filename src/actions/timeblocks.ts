@@ -4,7 +4,7 @@
 import db from "@/db";
 import {schedulesTable, timeblocksTable, tutorsTable} from "@/db/schema";
 import {auth, clerkClient} from "@clerk/nextjs/server";
-import {eq} from "drizzle-orm";
+import {eq, desc} from "drizzle-orm";
 
 export const createSchedule = async (data: any) => {
   const {userId} = await auth();
@@ -16,17 +16,37 @@ export const createSchedule = async (data: any) => {
     return {success: false, error: "No data provided"};
   }
 
-  const submitData = {
-    ownerId: userId,
-    schedule: data,
-  };
-
   try {
-    await db.insert(schedulesTable).values(submitData);
-    return {success: true, message: "Schedule created successfully"};
+    // Check if a schedule already exists for this user
+    const existingSchedule = await db
+      .select({
+        id: schedulesTable.id,
+      })
+      .from(schedulesTable)
+      .where(eq(schedulesTable.ownerId, userId))
+      .limit(1);
+
+    if (existingSchedule.length > 0) {
+      // Update existing schedule
+      await db
+        .update(schedulesTable)
+        .set({
+          schedule: data,
+          updatedAt: new Date(),
+        })
+        .where(eq(schedulesTable.ownerId, userId));
+      return {success: true, message: "Schedule updated successfully"};
+    } else {
+      // Create a new schedule
+      await db.insert(schedulesTable).values({
+        ownerId: userId,
+        schedule: data,
+      });
+      return {success: true, message: "Schedule created successfully"};
+    }
   } catch (error) {
     console.error(error);
-    return {success: false, message: "Failed to create schedule"};
+    return {success: false, message: "Failed to save schedule"};
   }
 };
 
@@ -47,9 +67,9 @@ export const getStudentInfo = async (studentId: string) => {
       email: user.emailAddresses[0].emailAddress,
       image: user.imageUrl,
     },
-    status: 200
-  }
-}
+    status: 200,
+  };
+};
 
 export const getScheduleData = async () => {
   const {userId} = await auth();
@@ -78,4 +98,34 @@ export const getScheduleData = async () => {
     console.log(error);
     return {message: "Error fetching schedule data", status: 500};
   }
-}
+};
+
+export const getUserSchedule = async () => {
+  const {userId} = await auth();
+  if (!userId) {
+    return {message: "Unauthorized", data: null, status: 401};
+  }
+
+  try {
+    const schedule = await db
+      .select({
+        id: schedulesTable.id,
+        schedule: schedulesTable.schedule,
+        createdAt: schedulesTable.createdAt,
+        updatedAt: schedulesTable.updatedAt,
+      })
+      .from(schedulesTable)
+      .where(eq(schedulesTable.ownerId, userId))
+      .orderBy(desc(schedulesTable.updatedAt))
+      .limit(1);
+
+    if (schedule.length === 0) {
+      return {data: null, status: 404};
+    }
+
+    return {data: schedule[0].schedule, status: 200};
+  } catch (error) {
+    console.error("Error fetching user schedule:", error);
+    return {message: "Error fetching user schedule", data: null, status: 500};
+  }
+};

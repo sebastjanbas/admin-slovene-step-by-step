@@ -1,41 +1,23 @@
 "use client";
 
-import React, {useRef, useState, useCallback, useMemo} from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import {DateSelectArg, EventClickArg} from "@fullcalendar/core";
 import type {EventDropArg, EventResizeArg} from "@/components/calendar/types";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {Label} from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {Textarea} from "@/components/ui/textarea";
-import {IconTrash, IconCheck, IconCalendar} from "@tabler/icons-react";
+import {IconCheck, IconLoader2} from "@tabler/icons-react";
+import {ScheduleSheet} from "./schedule-sheet";
+import {ScheduleConfirmDialog} from "./schedule-confirm-dialog";
 import {toast} from "sonner";
-import {createSchedule} from "@/actions/timeblocks";
+import {createSchedule, getUserSchedule} from "@/actions/timeblocks";
 import "@/components/calendar/calendar-styles.css";
 
 interface TimeSlot {
@@ -47,14 +29,6 @@ interface TimeSlot {
   description?: string;
   color?: string;
 }
-
-// Helper function to convert hex to rgba with opacity
-const hexToRgba = (hex: string, opacity: number): string => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
 
 interface DaySchedule {
   day: number;
@@ -72,20 +46,10 @@ interface CalendarEvent {
   color: string;
 }
 
-const AVAILABLE_COLORS = [
-  {value: "#3b82f6", label: "Blue", name: "blue"}, // Blue
-  {value: "#10b981", label: "Green", name: "green"}, // Green
-  {value: "#f59e0b", label: "Orange", name: "orange"}, // Orange
-  {value: "#ef4444", label: "Red", name: "red"}, // Red
-  {value: "#8b5cf6", label: "Purple", name: "purple"}, // Purple
-  {value: "#ec4899", label: "Pink", name: "pink"}, // Pink
-];
-
 const getDefaultColorForSessionType = (sessionType: string): string => {
   const defaults: Record<string, string> = {
-    private: "#3b82f6", // Blue for private
-    group: "#10b981", // Green for group
-    workshop: "#f59e0b", // Orange for workshop
+    individual: "#3b82f6", // Blue for individual
+    group: "#10b981", // Green for a group
     regulars: "#8b5cf6", // Purple for regulars
   };
   return defaults[sessionType] || "#3b82f6"; // Default to blue
@@ -112,12 +76,69 @@ const ScheduleBuilder = () => {
   }>({
     startTime: "09:00",
     duration: 60,
-    sessionType: "private",
+    sessionType: "individual",
     location: "online",
     description: "",
     color: "#3b82f6",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Convert DaySchedule[] to CalendarEvent[]
+  const convertDaySchedulesToEvents = useCallback(
+    (daySchedules: DaySchedule[]): CalendarEvent[] => {
+      const calendarEvents: CalendarEvent[] = [];
+
+      daySchedules.forEach((daySchedule) => {
+        daySchedule.timeSlots.forEach((timeSlot) => {
+          calendarEvents.push({
+            id: timeSlot.id,
+            dayOfWeek: daySchedule.day,
+            startTime: timeSlot.startTime,
+            duration: timeSlot.duration,
+            sessionType: timeSlot.sessionType,
+            location: timeSlot.location,
+            description: timeSlot.description,
+            color:
+              timeSlot.color ||
+              getDefaultColorForSessionType(timeSlot.sessionType),
+          });
+        });
+      });
+
+      return calendarEvents;
+    },
+    []
+  );
+
+  // Load the existing schedule on mount
+  useEffect(() => {
+    const loadSchedule = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getUserSchedule();
+
+        if (result.status === 200 && result.data) {
+          const daySchedules = result.data as DaySchedule[];
+          const loadedEvents = convertDaySchedulesToEvents(daySchedules);
+          setEvents(loadedEvents);
+          setIsLoading(false);
+        } else if (result.status === 404) {
+          // No schedule found, start with an empty state
+          setEvents([]);
+        } else {
+          toast.error("Failed to load schedule");
+        }
+      } catch (error) {
+        console.error("Error loading schedule:", error);
+        toast.error("Failed to load schedule");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSchedule();
+  }, [convertDaySchedulesToEvents]);
 
   const daysOfWeek = [
     {value: 1, label: "Monday", short: "Mon"},
@@ -134,11 +155,10 @@ const ScheduleBuilder = () => {
     const today = new Date();
     const day = today.getDay();
     const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
-    const monday = new Date(today.setDate(diff));
-    return monday;
+    return new Date(today.setDate(diff));
   }, []);
 
-  // Convert day of week (0-6) to a date in the reference week
+  // Convert day of the week (0-6) to a date in the reference week
   const getDateForDayOfWeek = useCallback(
     (dayOfWeek: number, startTime: string) => {
       const referenceMonday = getReferenceDate();
@@ -174,7 +194,7 @@ const ScheduleBuilder = () => {
     const durationMinutes = Math.round(durationMs / 60000); // Convert to minutes
 
     // Ensure minimum duration of 15 minutes
-    const finalDuration = Math.max(15, Math.round(durationMinutes / 15) * 15); // Round to nearest 15 minutes
+    const finalDuration = Math.max(15, Math.round(durationMinutes / 15) * 15); // Round to the nearest 15 minutes
 
     // Check if there's already an event at this time slot
     const existingEvent = events.find(
@@ -198,13 +218,13 @@ const ScheduleBuilder = () => {
         duration: existingEvent.duration,
       });
     } else {
-      // Create new event - duration is set by drag selection
+      // Create a new event-duration is set by drag selection
       setEditingEvent(null);
-      const defaultColor = getDefaultColorForSessionType("private");
+      const defaultColor = getDefaultColorForSessionType("individual");
       setFormData({
         startTime,
         duration: finalDuration,
-        sessionType: "private",
+        sessionType: "individual",
         location: "online",
         description: "",
         color: defaultColor,
@@ -285,7 +305,7 @@ const ScheduleBuilder = () => {
     // Calculate new duration
     const durationMs = newEnd.getTime() - newStart.getTime();
     const durationMinutes = Math.max(15, Math.round(durationMs / 60000));
-    // Round to nearest 15 minutes
+    // Round to the nearest 15 minutes
     const finalDuration = Math.round(durationMinutes / 15) * 15;
 
     const {dayOfWeek, startTime} = getDayAndTimeFromDate(newStart);
@@ -369,6 +389,12 @@ const ScheduleBuilder = () => {
     setEditingEvent(null);
   };
 
+  const handleCancelSheet = () => {
+    setIsSheetOpen(false);
+    setSelectedSlot(null);
+    setEditingEvent(null);
+  };
+
   // Convert calendar events to DaySchedule[] format
   const convertToDaySchedules = useCallback((): DaySchedule[] => {
     const schedulesMap = new Map<number, TimeSlot[]>();
@@ -391,7 +417,7 @@ const ScheduleBuilder = () => {
     });
 
     // Convert map to array and sort by day
-    const daySchedules: DaySchedule[] = Array.from(schedulesMap.entries())
+    return Array.from(schedulesMap.entries())
       .map(([day, timeSlots]) => ({
         day,
         timeSlots: timeSlots.sort((a, b) =>
@@ -399,8 +425,6 @@ const ScheduleBuilder = () => {
         ),
       }))
       .sort((a, b) => (a.day === 0 ? 7 : a.day) - (b.day === 0 ? 7 : b.day));
-
-    return daySchedules;
   }, [events]);
 
   const handleSubmitClick = () => {
@@ -425,8 +449,6 @@ const ScheduleBuilder = () => {
 
       if (result?.success) {
         toast.success("Schedule saved successfully!");
-        // Optionally clear events after successful submission
-        // setEvents([]);
       } else {
         toast.error(result?.message || "Failed to save schedule");
       }
@@ -476,7 +498,7 @@ const ScheduleBuilder = () => {
       <div className="absolute top-4 right-4 z-10">
         <Button
           onClick={handleSubmitClick}
-          disabled={totalSlots === 0 || isSubmitting}
+          disabled={totalSlots === 0 || isSubmitting || isLoading}
           size="sm"
         >
           {isSubmitting ? (
@@ -493,6 +515,16 @@ const ScheduleBuilder = () => {
         </Button>
       </div>
 
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20">
+          <div className="flex flex-col items-center gap-2">
+            <IconLoader2 className="h-8 w-8 animate-spin text-foreground"/>
+            <p className="text-sm text-muted-foreground">Loading schedule...</p>
+          </div>
+        </div>
+      )}
+
       {/* Full Screen Calendar */}
       <FullCalendar
         ref={calendarRef}
@@ -501,12 +533,12 @@ const ScheduleBuilder = () => {
         headerToolbar={false}
         height="100%"
         allDaySlot={false}
-        editable={true}
-        eventStartEditable={true}
-        eventDurationEditable={true}
-        eventResizableFromStart={true}
+        editable={!isLoading}
+        eventStartEditable={!isLoading}
+        eventDurationEditable={!isLoading}
+        eventResizableFromStart={!isLoading}
         eventOverlap={true}
-        selectable={true}
+        selectable={!isLoading}
         selectMirror={true}
         dayMaxEvents={false}
         weekends={true}
@@ -563,232 +595,28 @@ const ScheduleBuilder = () => {
       />
 
       {/* Add/Edit Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg p-5">
-          <SheetHeader>
-            <SheetTitle>
-              {editingEvent ? "Edit Time Slot" : "Add Time Slot"}
-            </SheetTitle>
-            <SheetDescription>
-              {selectedSlot &&
-                `${getDayLabel(selectedSlot.dayOfWeek)} at ${
-                  selectedSlot.startTime
-                } • ${selectedSlot.duration} minutes`}
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="space-y-6 py-6">
-            <div className="w-full flex flex-col justify-between items-center">
-              <div className="flex gap-2 flex-wrap mt-2">
-                {AVAILABLE_COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    onClick={() =>
-                      setFormData({...formData, color: color.value})
-                    }
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${
-                      formData.color === color.value
-                        ? "border-foreground scale-110 ring-2 ring-offset-2 ring-offset-background ring-foreground"
-                        : "border-muted hover:border-foreground/50"
-                    }`}
-                    style={{backgroundColor: color.value}}
-                    aria-label={`Select ${color.label} color`}
-                    title={color.label}
-                  />
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Selected:{" "}
-                {AVAILABLE_COLORS.find((c) => c.value === formData.color)
-                  ?.label || "Custom"}
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Session Type</Label>
-                <Select
-                  value={formData.sessionType}
-                  onValueChange={(value) => {
-                    const defaultColor = getDefaultColorForSessionType(value);
-                    setFormData({
-                      ...formData,
-                      sessionType: value,
-                      color: defaultColor,
-                    });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue/>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="group">Group</SelectItem>
-                    <SelectItem value="workshop">Workshop</SelectItem>
-                    <SelectItem value="regulars">Regulars</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Location</Label>
-                <Select
-                  value={formData.location}
-                  onValueChange={(value) =>
-                    setFormData({...formData, location: value})
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue/>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="classroom">Classroom</SelectItem>
-                    <SelectItem value="studio">Studio</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label>Description (optional)</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({...formData, description: e.target.value})
-                }
-                placeholder="Add notes about this time slot..."
-                rows={4}
-              />
-            </div>
-          </div>
-
-          <SheetFooter className="flex justify-between sm:justify-between">
-            {editingEvent && (
-              <Button
-                variant="destructive"
-                onClick={handleDeleteSlot}
-                type="button"
-              >
-                <IconTrash className="h-4 w-4 mr-2"/>
-                Delete
-              </Button>
-            )}
-            <div className="flex gap-2 ml-auto">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsSheetOpen(false);
-                  setSelectedSlot(null);
-                  setEditingEvent(null);
-                }}
-                type="button"
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSaveSlot} type="button">
-                <IconCheck className="h-4 w-4 mr-2"/>
-                Save
-              </Button>
-            </div>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      <ScheduleSheet
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        editingEvent={editingEvent}
+        selectedSlot={selectedSlot}
+        formData={formData}
+        onFormDataChange={setFormData}
+        onSave={handleSaveSlot}
+        onDelete={handleDeleteSlot}
+        onCancel={handleCancelSheet}
+        getDayLabel={getDayLabel}
+      />
 
       {/* Confirmation Dialog with Summary */}
-      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Confirm Schedule Submission</DialogTitle>
-            <DialogDescription>
-              Please review your schedule before submitting. This will save{" "}
-              {totalSlots} time slot{totalSlots !== 1 ? "s" : ""} across{" "}
-              {convertToDaySchedules().length} day
-              {convertToDaySchedules().length !== 1 ? "s" : ""}.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {convertToDaySchedules().map((schedule) => (
-              <div
-                key={schedule.day}
-                className="border rounded-lg p-4 space-y-2"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <IconCalendar className="h-4 w-4 text-muted-foreground"/>
-                  <span className="font-semibold text-lg">
-                    {getDayLabel(schedule.day)}
-                  </span>
-                  <Badge variant="secondary">
-                    {schedule.timeSlots.length} slot
-                    {schedule.timeSlots.length !== 1 ? "s" : ""}
-                  </Badge>
-                </div>
-                <div className="space-y-2">
-                  {schedule.timeSlots.map((slot) => {
-                    const [hours, minutes] = slot.startTime
-                      .split(":")
-                      .map(Number);
-                    const startMinutes = hours * 60 + minutes;
-                    const endMinutes = startMinutes + slot.duration;
-                    const endHours = Math.floor(endMinutes / 60);
-                    const endMins = endMinutes % 60;
-                    const endTime = `${endHours
-                      .toString()
-                      .padStart(2, "0")}:${endMins
-                      .toString()
-                      .padStart(2, "0")}`;
-
-                    const slotColor = slot.color || "#3b82f6";
-                    const lightColor = hexToRgba(slotColor, 0.15);
-
-                    return (
-                      <div
-                        key={slot.id}
-                        className="flex items-center justify-between p-2 rounded border"
-                        style={{
-                          backgroundColor: lightColor,
-                          borderLeft: `4px solid ${slotColor}`,
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="text-sm font-medium">
-                            {slot.startTime} - {endTime}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            ({slot.duration} minutes)
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {slot.sessionType}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {slot.location}
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsConfirmDialogOpen(false)}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmSubmit} type="button">
-              <IconCheck className="h-4 w-4 mr-2"/>
-              Confirm & Submit
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ScheduleConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        daySchedules={convertToDaySchedules()}
+        totalSlots={totalSlots}
+        onConfirm={handleConfirmSubmit}
+        getDayLabel={getDayLabel}
+      />
     </div>
   );
 };
