@@ -6,7 +6,7 @@ import {
   varchar,
   decimal,
   // pgEnum,
-  jsonb, pgEnum,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 // export const sessionStatus = pgEnum("session_status", [

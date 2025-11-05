@@ -3,7 +3,6 @@ import {Badge} from "@/components/ui/badge";
 import {Sheet, SheetContent, SheetTitle} from "@/components/ui/sheet";
 import {
   IconCalendar,
-  IconCalendarEvent,
   IconClock,
   IconMail,
   IconMapPin,
@@ -19,23 +18,6 @@ type EventSheetProps = {
   isEventSheetOpen: boolean;
   setIsEventSheetOpen: (open: boolean) => void;
   selectedSession: SessionData & { studentInfo: StudentInfo | null } | null;
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "available":
-      return "bg-green-100 text-green-800 border-green-200";
-    case "booked":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    case "cancelled":
-      return "bg-red-100 text-red-800 border-red-200";
-    case "completed":
-      return "bg-gray-100 text-gray-800 border-gray-200";
-    case "no-show":
-      return "bg-orange-100 text-orange-800 border-orange-200";
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
-  }
 };
 
 const formatTime = (date: Date) => {
@@ -89,8 +71,9 @@ export const EventSheet = ({isEventSheetOpen, setIsEventSheetOpen, selectedSessi
               <SheetTitle className="text-2xl font-bold">
                 {student?.name || "Unknown student"} - {event.sessionType}
               </SheetTitle>
-              <Badge className={getStatusColor(event.status)}>
-                {event.status}
+              <Badge
+                variant={(startTime < new Date() && event.status === "booked") ? "completed" : (event.status as "booked" || "cancelled" || "available")}>
+                {startTime < new Date() && event.status === "booked" ? "Completed" : event.status}
               </Badge>
             </div>
 
@@ -209,12 +192,7 @@ export const EventSheet = ({isEventSheetOpen, setIsEventSheetOpen, selectedSessi
             {/* Action Buttons */}
             <div className="p-6">
               <div className="flex gap-3">
-                {event.status === "cancelled" ? (
-                  <Button className="flex-1" size="sm">
-                    <IconCalendarEvent className="h-4 w-4 mr-2"/>
-                    Make available Session
-                  </Button>
-                ) : event.status === "booked" ? (
+                {event.status === "booked" ? (
                   <>
                     <Button variant="destructive" size="sm" className="flex-1">
                       <IconX className="h-4 w-4 mr-2"/>

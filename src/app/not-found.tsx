@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +9,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  IconHome,
   IconAlertTriangle,
   IconArrowLeft,
 } from "@tabler/icons-react";
@@ -22,7 +21,7 @@ const NotFound = () => {
           <CardHeader className="text-center pb-4">
             <div className="flex justify-center mb-4">
               <div className="p-4 rounded-full bg-orange-50 dark:bg-orange-950/30">
-                <IconAlertTriangle className="h-12 w-12 text-orange-600 dark:text-orange-500" />
+                <IconAlertTriangle className="h-12 w-12 text-orange-600 dark:text-orange-500"/>
               </div>
             </div>
             <CardTitle className="text-4xl font-bold tracking-tight">
@@ -46,7 +45,7 @@ const NotFound = () => {
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
               <Button asChild variant="outline" size="lg">
                 <Link href="/">
-                  <IconArrowLeft className="h-5 w-5" />
+                  <IconArrowLeft className="h-5 w-5"/>
                   Go Back
                 </Link>
               </Button>

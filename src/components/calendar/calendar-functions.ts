@@ -1,13 +1,10 @@
-export const getStatusColor = (status: string) => {
+export const getStatusColor = (status: string, startTime: Date) => {
+
   switch (status?.toLowerCase()) {
-    case "booked":
-    case "confirmed":
-      return "var(--event-bg-booked)";
+    case "booked"  :
+      return startTime < new Date() ? "var(--event-bg-completed)" : "var(--event-bg-booked)";
     case "available":
-    case "free":
       return "var(--event-bg-available)";
-    case "no-show":
-      return "var(--event-bg-no-show)";
     case "cancelled":
       return "var(--event-bg-cancelled)";
     default:

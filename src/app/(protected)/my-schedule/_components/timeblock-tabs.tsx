@@ -1,24 +1,20 @@
 "use client";
 
 import React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {useRouter, useSearchParams} from "next/navigation";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {
   IconCalendar,
   IconCalendarEvent,
-  IconClock,
-  IconUsers,
 } from "@tabler/icons-react";
-import { TimeblockList } from "@/app/(protected)/my-schedule/_components/timeblock-list";
-import { BookingManagement } from "@/app/(protected)/my-schedule/_components/booking-management";
 import ScheduleBuilder from "@/app/(protected)/my-schedule/_components/schedule-builder";
 import Calendar from "@/components/calendar/calendar";
-import { SessionData } from "@/components/calendar/types";
+import {SessionData} from "@/components/calendar/types";
 
 const TimeblockTabs = ({
-  data,
-  initialTab,
-}: {
+                         data,
+                         initialTab,
+                       }: {
   data: SessionData[];
   initialTab?: string;
 }) => {
@@ -40,37 +36,21 @@ const TimeblockTabs = ({
     >
       <TabsList className="mx-auto flex-shrink-0">
         <TabsTrigger value="calendar" className="cursor-pointer">
-          <IconCalendar className="mr-2 h-4 w-4" />
+          <IconCalendar className="mr-2 h-4 w-4"/>
           Calendar View
         </TabsTrigger>
-        <TabsTrigger value="list" className="cursor-pointer">
-          <IconClock className="mr-2 h-4 w-4" />
-          Time blocks
-        </TabsTrigger>
-        <TabsTrigger value="bookings" className="cursor-pointer">
-          <IconUsers className="mr-2 h-4 w-4" />
-          Bookings
-        </TabsTrigger>
         <TabsTrigger value="templates" className="cursor-pointer">
-          <IconCalendarEvent className="mr-2 h-4 w-4" />
+          <IconCalendarEvent className="mr-2 h-4 w-4"/>
           My Schedule
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value="calendar" className="flex-1 min-h-0 overflow-y-auto">
-        <Calendar data={data} />
-      </TabsContent>
-
-      <TabsContent value="list" className="flex-1 min-h-0">
-        <TimeblockList data={data} />
-      </TabsContent>
-
-      <TabsContent value="bookings" className="flex-1 min-h-0 overflow-y-auto">
-        <BookingManagement />
+        <Calendar data={data}/>
       </TabsContent>
 
       <TabsContent value="templates" className="flex-1 min-h-0 overflow-y-auto">
-        <ScheduleBuilder />
+        <ScheduleBuilder/>
         {/*<ScheduleTemplateBuilder />*/}
       </TabsContent>
     </Tabs>

@@ -3,7 +3,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import db from "@/db";
 import { tutorsTable, timeblocksTable } from "@/db/schema";
-import { sql, asc, eq } from "drizzle-orm";
+import { sql, asc, eq, and, lt } from "drizzle-orm";
 
 export interface TutorHoursByType {
   tutorId: number;
@@ -89,6 +89,12 @@ export const getAllTutorHoursByType = async () => {
         sessionCount: sql<number>`COUNT(*)::int`,
       })
       .from(timeblocksTable)
+      .where(
+        and(
+          eq(timeblocksTable.status, "booked"),
+          lt(timeblocksTable.startTime, new Date())
+        )
+      )
       .innerJoin(tutorsTable, eq(tutorsTable.id, timeblocksTable.tutorId))
       .groupBy(
         tutorsTable.id,

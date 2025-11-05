@@ -1,10 +1,10 @@
 "use server";
 
-import { eventSchema } from "@/app/(protected)/language-club/_components/add-event-form";
+import {eventSchema} from "@/app/(protected)/language-club/_components/add-event-form";
 import db from "@/db";
-import { langClubBookingsTable, langClubTable } from "@/db/schema";
-import { clerkClient } from "@clerk/nextjs/server";
-import { eq, ilike } from "drizzle-orm";
+import {langClubBookingsTable, langClubTable} from "@/db/schema";
+import {clerkClient} from "@clerk/nextjs/server";
+import {eq, ilike} from "drizzle-orm";
 import z from "zod";
 
 export async function addEvent(values: z.infer<typeof eventSchema>) {
@@ -25,10 +25,10 @@ export async function addEvent(values: z.infer<typeof eventSchema>) {
       stripeProductId: null,
       stripePriceId: null,
     });
-    return { message: "Event added", success: true };
+    return {message: "Event added", success: true};
   } catch (error) {
     console.error(error);
-    return { message: "Error adding event", success: false };
+    return {message: "Error adding event", success: false};
   }
 }
 
@@ -36,7 +36,7 @@ export async function editEvent(
   values: z.infer<typeof eventSchema>,
   id: number
 ) {
-  let time = "";
+  let time: string;
   // If the time is an ISO string, parse and format it
   if (values.time.includes("T")) {
     time = values.time.split("T")[1];
@@ -59,19 +59,18 @@ export async function editEvent(
         maxBooked: Number(values.spots),
       })
       .where(eq(langClubTable.id, id));
-    return { message: "Event edited", success: true };
+    return {message: "Event edited", success: true};
   } catch (error) {
     console.error(error);
-    return { message: "Error editing event", success: false };
+    return {message: "Error editing event", success: false};
   }
 }
 
 export async function getBookingById(id: number) {
   try {
-    const booking = await db.query.langClubTable.findFirst({
+    return await db.query.langClubTable.findFirst({
       where: eq(langClubTable.id, id),
     });
-    return booking;
   } catch (error) {
     console.error(error);
     return null;
@@ -105,7 +104,7 @@ export const getPeopleBooked = async (bookingId: number) => {
         eq(langClubBookingsTable.eventId, langClubTable.id)
       )
       .where(eq(langClubTable.id, bookingId));
-    const usersWithNames = await Promise.all(
+    return await Promise.all(
       users.map(async (user: { userId: string; status: string }) => {
         const userData = await client.users.getUser(user.userId);
         return {
@@ -117,8 +116,6 @@ export const getPeopleBooked = async (bookingId: number) => {
         };
       })
     );
-
-    return usersWithNames;
   } catch (error) {
     console.error(error);
     return [];
@@ -128,13 +125,13 @@ export const getPeopleBooked = async (bookingId: number) => {
 export const deleteEvent = async (id: number) => {
   try {
     await db.delete(langClubTable).where(eq(langClubTable.id, id));
-    return { message: "Event deleted", success: true };
+    return {message: "Event deleted", success: true};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error);
     if (error?.cause?.code === "23503") {
-      return { message: "Event is associated with a booking", success: false };
+      return {message: "Event is associated with a booking", success: false};
     }
-    return { message: "Error deleting event", success: false };
+    return {message: "Error deleting event", success: false};
   }
 };

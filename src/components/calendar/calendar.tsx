@@ -40,7 +40,10 @@ export default function Calendar({data}: { data: SessionData[] }) {
   >(null);
   const [isEventSheetOpen, setIsEventSheetOpen] = useState(false);
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
-  const [calendarTitle, setCalendarTitle] = useState("Calendar");
+  const [calendarTitle, setCalendarTitle] = useState(new Date().toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  }));
   const [currentView, setCurrentView] = useState(initialFullCalendarView);
   const [showWeekends, setShowWeekends] = useState(true);
   const [studentsInfo, setStudentsInfo] = useState<
@@ -134,7 +137,7 @@ export default function Calendar({data}: { data: SessionData[] }) {
         params.set("view", urlViewName);
       }
 
-      router.push(`/timeblocks?${params.toString()}`, {scroll: false});
+      router.push(`/my-schedule?${params.toString()}`, {scroll: false});
     },
     [searchParams, router]
   );
@@ -154,7 +157,6 @@ export default function Calendar({data}: { data: SessionData[] }) {
 
   const handleMoreEventsClick = useCallback(
     (date: Date) => {
-      console.log("Clicked date:", date);
 
       // Find the start of the week (Monday) for the clicked date
       // FullCalendar typically uses Monday as the start of the week
@@ -164,14 +166,6 @@ export default function Calendar({data}: { data: SessionData[] }) {
       // Adjust to Monday start (if Sunday, go back 6 days; otherwise go back to Monday)
       const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
-
-      console.log("Calculated start of week:", startOfWeek);
-      console.log(
-        "Day of week was:",
-        dayOfWeek,
-        "Days to subtract:",
-        daysToSubtract
-      );
 
       // Set the calendar-to-week view and navigate to that week
       if (calendarRef.current) {
@@ -237,6 +231,7 @@ export default function Calendar({data}: { data: SessionData[] }) {
     setSelectedEvent(session);
     setIsEventSheetOpen(true);
   };
+
   const goToToday = () => {
     const calendarApi = calendarRef.current?.getApi();
     if (calendarApi) {
@@ -404,7 +399,8 @@ export default function Calendar({data}: { data: SessionData[] }) {
               .padStart(2, "0")}`;
 
             const status = eventInfo.event.extendedProps?.status;
-            const statusColor = getStatusColor(status);
+            const date = eventInfo.event.start;
+            const statusColor = getStatusColor(status, date);
             return (
               <div
                 className={`text-white text-sm font-medium w-full ${

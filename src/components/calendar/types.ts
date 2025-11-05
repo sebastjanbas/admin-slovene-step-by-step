@@ -1,16 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// Types
-
-export interface DateClickArg {
-  dateStr: string;
-  date: Date;
-  allDay: boolean;
-  dayEl: HTMLElement;
-  jsEvent: MouseEvent;
-  view: any;
-}
-
 export interface EventClickArg {
   event: any;
   jsEvent: MouseEvent;
@@ -32,14 +21,14 @@ export interface EventResizeArg {
 }
 
 export interface SessionData {
-  id: number,
-  startTime: Date,
-  duration: number,
-  status: string,
-  sessionType: string,
-  location: string,
-  studentId: string,
-  tutorId: number
+  id: number;
+  startTime: Date;
+  duration: number;
+  status: string;
+  sessionType: string;
+  location: string;
+  studentId: string;
+  tutorId: number;
 }
 
 export interface StudentInfo {

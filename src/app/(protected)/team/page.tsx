@@ -5,7 +5,6 @@ import {notFound} from "next/navigation";
 export default async function TeamPage() {
   const isUserAdmin = await isAdmin();
 
-  console.log("User is admin: ", isUserAdmin ? "Yes" : "No");
   if (!isUserAdmin) {
     throw notFound();
   }

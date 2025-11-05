@@ -237,14 +237,17 @@
 }
 
 .fc-theme-standard .fc-daygrid-day.fc-day-today::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 2px;
   background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
+  /* -webkit-mask-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff);
+  -webkit-mask-clip: content-box, padding-box;
+  -webkit-mask-composite: xor; */
+  mask-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff);
+  mask-clip: content-box, padding-box;
   mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
@@ -259,14 +262,17 @@
 }
 
 .fc-dayGridMonth-view .fc-daygrid-day.fc-day-today::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: var(--calendar-cell-radius);
   padding: 2px;
   background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
+  /* -webkit-mask-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff);
+  -webkit-mask-clip: content-box, padding-box;
+  -webkit-mask-composite: xor; */
+  mask-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff);
+  mask-clip: content-box, padding-box;
   mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
@@ -352,7 +358,7 @@
 }
 
 .fc-theme-standard .fc-timegrid-col.fc-day-today::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -372,11 +378,6 @@
    - When events overlap: they split the column width proportionally
    
    We ensure our custom styling doesn't interfere with this behavior */
-
-/* Remove any constraints that might prevent full width */
-.fc-timegrid-event-harness {
-  /* FullCalendar manages positioning */
-}
 
 /* Ensure event content fills the available width */
 .fc-timegrid-event .fc-event-main-frame,
@@ -427,7 +428,8 @@
 }
 
 /* ===== PLACEHOLDER COLUMN STYLING ===== */
-.fc-placeholder-cell {
+.fc-placeholder-cell,
+.fc-placeholder-header {
   background-color: var(--background) !important;
   color: var(--muted-foreground) !important;
   font-weight: 600 !important;
@@ -448,19 +450,7 @@
 }
 
 .fc-placeholder-header {
-  background-color: var(--background) !important;
-  color: var(--muted-foreground) !important;
-  font-weight: 600 !important;
-  font-size: 0.625rem !important;
-  padding: 0.5rem 0.25rem !important;
-  text-align: center !important;
-  border-right: 1px solid var(--border) !important;
-  min-width: 30px !important;
-  width: 30px !important;
-  max-width: 30px !important;
-  vertical-align: top !important;
   display: table-cell !important;
-  box-sizing: border-box !important;
 }
 
 .fc-placeholder-header:hover {

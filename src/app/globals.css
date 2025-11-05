@@ -112,7 +112,7 @@
   --event-bg-booked: #10b981; /* Green - Booked */
   --event-bg-cancelled: #ef4444; /* Red - Cancelled */
   --event-bg-completed: #6b7280; /* Gray - Completed */
-  --event-bg-no-show: #f59e0b; /* Orange - No Show */
+  /*--event-bg-no-show: #f59e0b; !* Orange - No Show *!*/
 }
 
 .dark {
@@ -180,16 +180,17 @@
 
   /* Event Status Colors - Dark Mode */
   --event-bg-available: #3b82f6; /* Blue - Available */
-  --event-bg-booked: #10b981; /* Green - Booked */
+  --event-bg-booked: #7a3ed5; /* Green - Booked */
   --event-bg-cancelled: #ef4444; /* Red - Cancelled */
   --event-bg-completed: #6b7280; /* Gray - Completed */
-  --event-bg-no-show: #f59e0b; /* Orange - No Show */
+  /*--event-bg-no-show: #f59e0b; !* Orange - No Show *!*/
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
