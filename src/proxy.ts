@@ -1,8 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Redirect language-prefixed routes to dashboard
+  const pathname = req.nextUrl.pathname;
+  if (pathname.match(/^\/(en|sl|ru|it)(\/|$)/)) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
