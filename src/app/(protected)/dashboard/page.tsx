@@ -1,16 +1,11 @@
 import {OverviewCards} from "./_components/overview-cards";
-import {TodaysEvents, type TodaysEvent} from "./_components/todays-events";
-import {
-  TodaysSessions,
-  type TodaysSession,
-} from "./_components/todays-sessions";
-import {AlertsSection, type Alert} from "./_components/alerts-section";
+import {type TodaysEvent, TodaysEvents} from "./_components/todays-events";
+import {type TodaysSession, TodaysSessions,} from "./_components/todays-sessions";
+import {type Alert, AlertsSection} from "./_components/alerts-section";
 import {UpcomingEvents} from "./_components/upcoming-events";
-import {
-  RecentActivity,
-  type ActivityItem,
-} from "./_components/recent-activity";
+import {type ActivityItem, RecentActivity,} from "./_components/recent-activity";
 import {QuickActions} from "./_components/quick-actions";
+import {IconAlertTriangle} from "@tabler/icons-react";
 
 // Placeholder data - realistic data for staff dashboard
 function getPlaceholderData() {
@@ -271,51 +266,60 @@ export default function DashboardPage() {
   const data = getPlaceholderData();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Overview of today&apos;s events, sessions, and priority tasks
-          </p>
+    <>
+      <div
+        className={"w-full text-center bg-yellow-200 text-yellow-700 inline-flex justify-center items-center py-2 gap-2"}>
+        <IconAlertTriangle/>
+        <span>
+          Dashbard ni funkcionalna stran, samo za okras. Tuki lahko vidiš kako bi lahko zgledala v prihodnje. Feedback bi bil zaželjen.
+        </span>
+      </div>
+      <div className="flex flex-col gap-6 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Overview of today&apos;s events, sessions, and priority tasks
+            </p>
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        <OverviewCards
+          eventsToday={data.stats.eventsToday}
+          sessionsToday={data.stats.sessionsToday}
+          pendingActions={data.stats.pendingActions}
+          newBookingsToday={data.stats.newBookingsToday}
+        />
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Today's Items */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Alerts Section */}
+            <AlertsSection alerts={data.alerts}/>
+
+            {/* Today's Events */}
+            <TodaysEvents events={data.todaysEvents}/>
+
+            {/* Today's Sessions */}
+            <TodaysSessions sessions={data.todaysSessions}/>
+
+            {/* Upcoming Events */}
+            <UpcomingEvents events={data.upcomingEvents}/>
+          </div>
+
+          {/* Right Column - Activity & Quick Actions */}
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <QuickActions/>
+
+            {/* Recent Activity */}
+            <RecentActivity activities={data.recentActivity}/>
+          </div>
         </div>
       </div>
-
-      {/* Overview Cards */}
-      <OverviewCards
-        eventsToday={data.stats.eventsToday}
-        sessionsToday={data.stats.sessionsToday}
-        pendingActions={data.stats.pendingActions}
-        newBookingsToday={data.stats.newBookingsToday}
-      />
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Today's Items */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Alerts Section */}
-          <AlertsSection alerts={data.alerts}/>
-
-          {/* Today's Events */}
-          <TodaysEvents events={data.todaysEvents}/>
-
-          {/* Today's Sessions */}
-          <TodaysSessions sessions={data.todaysSessions}/>
-
-          {/* Upcoming Events */}
-          <UpcomingEvents events={data.upcomingEvents}/>
-        </div>
-
-        {/* Right Column - Activity & Quick Actions */}
-        <div className="space-y-6">
-          {/* Quick Actions */}
-          <QuickActions/>
-
-          {/* Recent Activity */}
-          <RecentActivity activities={data.recentActivity}/>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

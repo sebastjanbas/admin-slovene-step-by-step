@@ -1,9 +1,9 @@
 "use server";
 
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import {auth, clerkClient} from "@clerk/nextjs/server";
 import db from "@/db";
-import { tutorsTable, timeblocksTable } from "@/db/schema";
-import { sql, asc, eq, and, lt } from "drizzle-orm";
+import {tutorsTable, timeblocksTable} from "@/db/schema";
+import {sql, asc, eq, and, lt} from "drizzle-orm";
 
 export interface TutorHoursByType {
   tutorId: number;
@@ -17,7 +17,7 @@ export interface TutorHoursByType {
 }
 
 export const isAdmin = async () => {
-  const { userId } = await auth();
+  const {userId} = await auth();
   if (!userId) {
     return false;
   }
@@ -34,46 +34,58 @@ export const checkTutorActivation = async (userId: string) => {
   return response.privateMetadata?.isActivated;
 };
 
-export const activateTutorAccount = async () => {
-  const { userId } = await auth();
+export const activateTutorAccount = async (formData: FormData) => {
+  const {userId} = await auth();
   const client = await clerkClient();
 
   if (!userId) {
-    return { message: "Unauthorized", status: 401 };
+    return {message: "Unauthorized", status: 401};
   }
 
   const userData = await client.users.getUser(userId);
   if (!userData) {
-    return { message: "User not found", status: 404 };
+    return {message: "User not found", status: 404};
   }
 
   try {
+    // Extract form fields
+    const phone = formData.get("phone") as string | null;
+    const bio = formData.get("bio") as string | null;
+    const imageUrl = formData.get("imageUrl") as string | null;
+
+    // Use provided image URL or fallback to Clerk's default
+    const avatarUrl = imageUrl || userData.imageUrl || "";
+
+    // Create tutor record
     await db.insert(tutorsTable).values({
       name: userData.fullName || "Unknown",
       email: userData.emailAddresses[0].emailAddress,
-      avatar: userData.imageUrl || "",
-      phone: "Unknown",
-      bio: "Unknown",
+      avatar: avatarUrl,
+      phone: phone?.trim() || "Not provided",
+      bio: bio?.trim() || "No bio yet",
       color: "#6366f1",
       clerkId: userId,
     });
 
-    await client.users.updateUser(userId, {
+    // Set activation flag
+    await client.users.updateUserMetadata(userId, {
       privateMetadata: {
         isActivated: true,
       },
     });
-    return { message: "Account activated", status: 200 };
+
+    return {message: "Account activated successfully", status: 200};
   } catch (error) {
-    console.error(error);
-    return { message: "Error activating account", status: 500 };
+    console.error("Activation error:", error);
+    return {message: "Error activating account", status: 500};
   }
 };
 
+// @formatter:off
 export const getAllTutorHoursByType = async () => {
-  const { userId } = await auth();
+  const {userId} = await auth();
   if (!userId) {
-    return { message: "Unauthorized", status: 401, data: [] };
+    return {message: "Unauthorized", status: 401, data: []};
   }
 
   try {
@@ -117,9 +129,10 @@ export const getAllTutorHoursByType = async () => {
       sessionCount: row.sessionCount,
     }));
 
-    return { message: "Success", status: 200, data };
+    return {message: "Success", status: 200, data};
   } catch (error) {
     console.error(error);
-    return { message: "Error fetching tutor hours", status: 500, data: [] };
+    return {message: "Error fetching tutor hours", status: 500, data: []};
   }
 };
+// @formatter:on
