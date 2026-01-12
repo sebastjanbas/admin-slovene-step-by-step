@@ -61,8 +61,8 @@ export const activateTutorAccount = async (formData: FormData) => {
       name: userData.fullName || "Unknown",
       email: userData.emailAddresses[0].emailAddress,
       avatar: avatarUrl,
-      phone: phone?.trim() || "Not provided",
-      bio: bio?.trim() || "No bio yet",
+      phone: phone?.trim() || "-",
+      bio: bio?.trim() || "-",
       color: "#6366f1",
       clerkId: userId,
     });
