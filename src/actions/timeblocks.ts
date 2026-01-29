@@ -5,7 +5,6 @@ import db from "@/db";
 import {schedulesTable, timeblocksTable, tutorsTable, regularInvitationsTable} from "@/db/schema";
 import {auth, clerkClient} from "@clerk/nextjs/server";
 import {eq, desc, and} from "drizzle-orm";
-import React from "react";
 import {randomUUID} from "crypto";
 import {resend} from "@/lib/resend";
 import {InvitationEmail} from "@/emails/invitation-email";
@@ -85,9 +84,10 @@ async function processRegularsInvitations(userId: string, daySchedules: any[]) {
     const timeSlots = daySchedule.timeSlots as any[];
 
     for (const slot of timeSlots) {
-      if (slot.sessionType !== "regulars" || !slot.email) continue;
+      if (slot.sessionType !== "regulars" || !slot.email || !slot.studentClerkId) continue;
 
       const studentEmail = slot.email as string;
+      const studentClerkId = slot.studentClerkId as string;
 
       // Check if invitation already exists for this tutor + email + day + time
       const existing = await db
@@ -111,6 +111,7 @@ async function processRegularsInvitations(userId: string, daySchedules: any[]) {
         token,
         tutorId: tutor.id,
         studentEmail,
+        studentClerkId,
         dayOfWeek: day,
         startTime: slot.startTime,
         duration: slot.duration,
@@ -137,7 +138,6 @@ async function processRegularsInvitations(userId: string, daySchedules: any[]) {
             declineUrl,
           })
         });
-        console.log("EMAIL SENT")
 
       } catch (emailError) {
         console.error(`Failed to send invitation email to ${studentEmail}:`, emailError);
@@ -223,6 +223,30 @@ export const getUserSchedule = async () => {
   } catch (error) {
     console.error("Error fetching user schedule:", error);
     return {message: "Error fetching user schedule", data: null, status: 500};
+  }
+};
+
+export const getStudents = async () => {
+  const {userId} = await auth();
+  if (!userId) {
+    return {data: [], status: 401};
+  }
+
+  try {
+    const client = await clerkClient();
+    const users = await client.users.getUserList({limit: 100});
+
+    const students = users.data.map((user) => ({
+      clerkId: user.id,
+      email: user.emailAddresses[0]?.emailAddress || "",
+      name: user.fullName || user.firstName || user.emailAddresses[0]?.emailAddress || "Unknown",
+      image: user.imageUrl,
+    }));
+
+    return {data: students, status: 200};
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    return {data: [], status: 500};
   }
 };
 

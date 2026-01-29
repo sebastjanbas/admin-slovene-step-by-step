@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useState} from "react";
 import {
   Sheet,
   SheetContent,
@@ -19,7 +19,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {Textarea} from "@/components/ui/textarea";
-import {Input} from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   IconTrash,
   IconCheck,
@@ -30,9 +42,18 @@ import {
   IconVideo,
   IconBuilding,
   IconInfoCircle,
-  IconMail,
+  IconUser,
+  IconSelector,
 } from "@tabler/icons-react";
 import {calculateEndTime} from "@/app/(protected)/my-schedule/_components/schedule-confirm-dialog";
+import {cn} from "@/lib/utils";
+
+export interface Student {
+  clerkId: string;
+  email: string;
+  name: string;
+  image?: string;
+}
 
 const SESSION_TYPE_CONFIG = {
   individual: {
@@ -96,6 +117,7 @@ interface CalendarEvent {
   description?: string;
   color: string;
   email?: string;
+  studentClerkId?: string;
 }
 
 interface ScheduleSheetProps {
@@ -115,6 +137,7 @@ interface ScheduleSheetProps {
     description: string;
     color: string;
     email: string;
+    studentClerkId: string;
   };
   onFormDataChange: (data: {
     startTime: string;
@@ -124,11 +147,13 @@ interface ScheduleSheetProps {
     description: string;
     color: string;
     email: string;
+    studentClerkId: string;
   }) => void;
   onSave: () => void;
   onDelete: () => void;
   onCancel: () => void;
   getDayLabel: (dayValue: number) => string;
+  students: Student[];
 }
 
 const formatTime = (minutes: number): string => {
@@ -150,7 +175,10 @@ export const ScheduleSheet: React.FC<ScheduleSheetProps> = ({
                                                               onDelete,
                                                               onCancel,
                                                               getDayLabel,
+                                                              students,
                                                             }) => {
+  const [studentSelectOpen, setStudentSelectOpen] = useState(false);
+
   const sessionConfig =
     SESSION_TYPE_CONFIG[
       formData.sessionType as keyof typeof SESSION_TYPE_CONFIG
@@ -167,8 +195,11 @@ export const ScheduleSheet: React.FC<ScheduleSheetProps> = ({
       sessionType: value,
       color: defaultColor,
       email: value === "regulars" ? formData.email : "",
+      studentClerkId: value === "regulars" ? formData.studentClerkId : "",
     });
   };
+
+  const selectedStudent = students.find(s => s.clerkId === formData.studentClerkId);
 
   const endTime = selectedSlot
     ? calculateEndTime(selectedSlot.startTime, formData.duration)
@@ -278,27 +309,79 @@ export const ScheduleSheet: React.FC<ScheduleSheetProps> = ({
             </div>
           </div>
 
-          {/* Student Email (regulars only) */}
+          {/* Student Selection (regulars only) */}
           {formData.sessionType === "regulars" && (
             <div className="space-y-3">
               <Label className="text-sm font-semibold flex items-center gap-2">
-                <IconMail className="h-4 w-4"/>
-                Student Email
+                <IconUser className="h-4 w-4"/>
+                Student
                 <span className="text-xs font-normal text-destructive">
                   *
                 </span>
               </Label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  onFormDataChange({...formData, email: e.target.value})
-                }
-                placeholder="student@example.com"
-                className="h-12 text-base"
-              />
+              <Popover open={studentSelectOpen} onOpenChange={setStudentSelectOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={studentSelectOpen}
+                    className="w-full h-12 justify-between text-base font-normal"
+                  >
+                    {selectedStudent ? (
+                      <span className="flex items-center gap-2 truncate">
+                        <span className="truncate">{selectedStudent.name}</span>
+                        <span className="text-muted-foreground text-sm truncate">
+                          ({selectedStudent.email})
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Select a student...</span>
+                    )}
+                    <IconSelector className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search students..." />
+                    <CommandList>
+                      <CommandEmpty>No students found.</CommandEmpty>
+                      <CommandGroup>
+                        {students.map((student) => (
+                          <CommandItem
+                            key={student.clerkId}
+                            value={`${student.name} ${student.email}`}
+                            onSelect={() => {
+                              onFormDataChange({
+                                ...formData,
+                                email: student.email,
+                                studentClerkId: student.clerkId,
+                              });
+                              setStudentSelectOpen(false);
+                            }}
+                          >
+                            <IconCheck
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.studentClerkId === student.clerkId
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-medium">{student.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {student.email}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-muted-foreground">
-                An invitation email will be sent to this address when the schedule is saved.
+                An invitation email will be sent to this student when the schedule is saved.
               </p>
             </div>
           )}

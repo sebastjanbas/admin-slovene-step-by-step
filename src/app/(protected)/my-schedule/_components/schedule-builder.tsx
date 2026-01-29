@@ -17,7 +17,8 @@ import {IconCheck, IconLoader2} from "@tabler/icons-react";
 import {ScheduleSheet} from "./schedule-sheet";
 import {ScheduleConfirmDialog} from "./schedule-confirm-dialog";
 import {toast} from "sonner";
-import {createSchedule, getUserSchedule} from "@/actions/timeblocks";
+import {createSchedule, getUserSchedule, getStudents} from "@/actions/timeblocks";
+import type {Student} from "./schedule-sheet";
 import "@/components/calendar/calendar-styles.css";
 
 interface TimeSlot {
@@ -29,6 +30,7 @@ interface TimeSlot {
   description?: string;
   color?: string;
   email?: string;
+  studentClerkId?: string;
 }
 
 interface DaySchedule {
@@ -46,6 +48,7 @@ interface CalendarEvent {
   description?: string;
   color: string;
   email?: string;
+  studentClerkId?: string;
 }
 
 const getDefaultColorForSessionType = (sessionType: string): string => {
@@ -76,6 +79,7 @@ const ScheduleBuilder = () => {
     description: string;
     color: string;
     email: string;
+    studentClerkId: string;
   }>({
     startTime: "09:00",
     duration: 60,
@@ -84,9 +88,11 @@ const ScheduleBuilder = () => {
     description: "",
     color: "#3b82f6",
     email: "",
+    studentClerkId: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [students, setStudents] = useState<Student[]>([]);
 
   // Convert DaySchedule[] to CalendarEvent[]
   const convertDaySchedulesToEvents = useCallback(
@@ -107,6 +113,7 @@ const ScheduleBuilder = () => {
               timeSlot.color ||
               getDefaultColorForSessionType(timeSlot.sessionType),
             email: timeSlot.email,
+            studentClerkId: timeSlot.studentClerkId,
           });
         });
       });
@@ -116,33 +123,39 @@ const ScheduleBuilder = () => {
     []
   );
 
-  // Load the existing schedule on mount
+  // Load the existing schedule and students on mount
   useEffect(() => {
-    const loadSchedule = async () => {
+    const loadData = async () => {
       setIsLoading(true);
       try {
-        const result = await getUserSchedule();
+        const [scheduleResult, studentsResult] = await Promise.all([
+          getUserSchedule(),
+          getStudents(),
+        ]);
 
-        if (result.status === 200 && result.data) {
-          const daySchedules = result.data as DaySchedule[];
+        if (scheduleResult.status === 200 && scheduleResult.data) {
+          const daySchedules = scheduleResult.data as DaySchedule[];
           const loadedEvents = convertDaySchedulesToEvents(daySchedules);
           setEvents(loadedEvents);
-          setIsLoading(false);
-        } else if (result.status === 404) {
+        } else if (scheduleResult.status === 404) {
           // No schedule found, start with an empty state
           setEvents([]);
         } else {
           toast.error("Failed to load schedule");
         }
+
+        if (studentsResult.status === 200) {
+          setStudents(studentsResult.data);
+        }
       } catch (error) {
-        console.error("Error loading schedule:", error);
+        console.error("Error loading data:", error);
         toast.error("Failed to load schedule");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadSchedule();
+    loadData();
   }, [convertDaySchedulesToEvents]);
 
   const daysOfWeek = [
@@ -217,6 +230,7 @@ const ScheduleBuilder = () => {
         description: existingEvent.description || "",
         color: existingEvent.color,
         email: existingEvent.email || "",
+        studentClerkId: existingEvent.studentClerkId || "",
       });
       setSelectedSlot({
         dayOfWeek,
@@ -235,6 +249,7 @@ const ScheduleBuilder = () => {
         description: "",
         color: defaultColor,
         email: "",
+        studentClerkId: "",
       });
       setSelectedSlot({
         dayOfWeek,
@@ -264,6 +279,7 @@ const ScheduleBuilder = () => {
         description: event.description || "",
         color: event.color,
         email: event.email || "",
+        studentClerkId: event.studentClerkId || "",
       });
       setSelectedSlot({
         dayOfWeek: event.dayOfWeek,
@@ -348,8 +364,8 @@ const ScheduleBuilder = () => {
       return;
     }
 
-    if (formData.sessionType === "regulars" && !formData.email) {
-      toast.error("Email is required for regulars sessions");
+    if (formData.sessionType === "regulars" && (!formData.email || !formData.studentClerkId)) {
+      toast.error("Please select a student for regulars sessions");
       return;
     }
 
@@ -367,6 +383,7 @@ const ScheduleBuilder = () => {
               description: formData.description,
               color: formData.color,
               email: formData.sessionType === "regulars" ? formData.email : undefined,
+              studentClerkId: formData.sessionType === "regulars" ? formData.studentClerkId : undefined,
             }
             : e
         )
@@ -384,6 +401,7 @@ const ScheduleBuilder = () => {
         description: formData.description,
         color: formData.color,
         email: formData.sessionType === "regulars" ? formData.email : undefined,
+        studentClerkId: formData.sessionType === "regulars" ? formData.studentClerkId : undefined,
       };
       setEvents((prev) => [...prev, newEvent]);
       toast.success("Time slot added");
@@ -424,6 +442,7 @@ const ScheduleBuilder = () => {
         description: event.description,
         color: event.color,
         email: event.email,
+        studentClerkId: event.studentClerkId,
       };
 
       if (!schedulesMap.has(event.dayOfWeek)) {
@@ -626,6 +645,7 @@ const ScheduleBuilder = () => {
         onDelete={handleDeleteSlot}
         onCancel={handleCancelSheet}
         getDayLabel={getDayLabel}
+        students={students}
       />
 
       {/* Confirmation Dialog with Summary */}
