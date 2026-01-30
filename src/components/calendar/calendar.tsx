@@ -402,7 +402,8 @@ export default function Calendar({data}: { data: SessionData[] }) {
 
             const status = eventInfo.event.extendedProps?.status;
             const date = eventInfo.event.start;
-            const statusColor = getStatusColor(status, date);
+            const sessionType = eventInfo.event.extendedProps?.sessionType;
+            const statusColor = getStatusColor(status, date, sessionType);
             return (
               <div
                 className={`text-white text-sm font-medium w-full ${

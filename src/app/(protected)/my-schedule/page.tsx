@@ -61,19 +61,17 @@ function generateRecurringEvents(
         `${inv.id}-${current.toDateString()}`
       );
 
-      if (!isCancelled) {
-        events.push({
-          id: -(inv.id * 1000 + events.length), // Negative IDs to avoid collision with real timeblocks
-          tutorId: inv.tutorId,
-          startTime,
-          duration: inv.duration,
-          status: "booked",
-          sessionType: "regulars",
-          location: inv.location,
-          studentId: inv.studentClerkId || "",
-          invitationId: inv.id,
-        });
-      }
+      events.push({
+        id: -(inv.id * 1000 + events.length), // Negative IDs to avoid collision with real timeblocks
+        tutorId: inv.tutorId,
+        startTime,
+        duration: inv.duration,
+        status: isCancelled ? "cancelled" : "booked",
+        sessionType: "regular",
+        location: inv.location,
+        studentId: inv.studentClerkId || "",
+        invitationId: inv.id,
+      });
 
       current.setDate(current.getDate() + 7);
     }

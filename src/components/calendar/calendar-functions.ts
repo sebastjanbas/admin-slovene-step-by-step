@@ -1,13 +1,18 @@
-export const getStatusColor = (status: string, startTime: Date) => {
+export const getStatusColor = (status: string, startTime: Date, sessionType?: string) => {
+  // Cancelled sessions always show red
+  if (status?.toLowerCase() === "cancelled") {
+    return "var(--color-red-400)";
+  }
 
-  switch (status?.toLowerCase()) {
-    case "booked"  :
-      return startTime < new Date() ? "var(--event-bg-completed)" : "var(--event-bg-booked)";
-    case "available":
-      return "var(--event-bg-available)";
-    case "cancelled":
-      return "var(--event-bg-cancelled)";
+  // Color based on session type
+  switch (sessionType?.toLowerCase()) {
+    case "individual":
+    case "group":
+      return "#7475F3";
+    case "regular":
+      return "#3B82F6"; // Blue color for regulars
     default:
-      return "var(--event-bg-completed)";
+      // Fallback to purple for unknown session types
+      return "#7475F3";
   }
 };
