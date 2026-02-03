@@ -6,7 +6,7 @@ import {
   varchar,
   decimal,
   // pgEnum,
-  jsonb,
+  jsonb, pgEnum,
 } from "drizzle-orm/pg-core";
 
 // export const sessionStatus = pgEnum("session_status", [
@@ -16,6 +16,8 @@ import {
 //   "completed",
 //   "no-show",
 // ]);
+
+export const tutorLevelEnum = pgEnum("tutor_level", ["junior", "senior"]);
 
 export const langClubTable = pgTable("lang_club", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -69,6 +71,7 @@ export const tutorsTable = pgTable("tutors", {
   avatar: varchar({length: 255}).notNull(),
   color: varchar({length: 255}).notNull(),
   clerkId: varchar({length: 255}).notNull().unique(),
+  level: tutorLevelEnum().notNull().default("junior"),
 });
 
 export const schedulesTable = pgTable("schedules", {
